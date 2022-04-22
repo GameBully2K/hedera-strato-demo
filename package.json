@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@buidlerlabs/hedera-strato-js": "0.7.3",
-    "@hashgraph/sdk": "^2.11.0"
+    "@hashgraph/sdk": "^2.11.0",
+    "dotenv": "^16.0.0"
   }
 }
