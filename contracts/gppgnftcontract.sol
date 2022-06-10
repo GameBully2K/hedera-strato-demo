@@ -23,14 +23,7 @@ contract gppgnftcontract is HederaTokenService {
     // modifier onlyClient() {
         //     require(msg.sender == client)
         // }
-    event NftMint(address indexed tokenAddress, int64[] serialNumbers);
 
-    event NftTransfer(
-        address indexed tokenAddress,
-        address indexed from,
-        address indexed to,
-        int64[] serialNumbers
-    );
     constructor(/*address _client, */address _tokenAddress, address _escrow, int64 total) {
         tokenAddress = _tokenAddress;
         escrow.push(_escrow);
@@ -61,13 +54,13 @@ contract gppgnftcontract is HederaTokenService {
         return joinTime[addr];
     }
 
-    function getstaked(address addr) public view returns(int64[] memory) {
-        return staked[addr];
+    function getstaked(address addr) public returns(int64[] memory) {
+        return nuc(staked[addr]);
     } 
     
     //the use of this function is not mendatory in the frontend it just makes sense to add it
-    function getunstaked(address addr) public view returns(int64[] memory) {
-        return unstaked[addr];
+    function getunstaked(address addr) public returns(int64[] memory) {
+        return nuc(unstaked[addr]);
     }
 
     // this function count array length for populated fields
@@ -76,8 +69,11 @@ contract gppgnftcontract is HederaTokenService {
             if (arr[i] > 0) r++;
         }
     }
+
+    
+    //nuc takes an array and nucs the zeros
     int64[] nuked;
-    function nuc(int64[] memory arr) public returns(int64[] memory) {
+    function nuc(int64[] memory arr) internal returns(int64[] memory) {
         for (uint i = 0 ; i < nuked.length; i++) {
             nuked.pop();
         }
@@ -86,6 +82,17 @@ contract gppgnftcontract is HederaTokenService {
         }
         return nuked;
     }
+
+    // int64[] nuked;
+    // function nuc(int64[] memory arr) public returns(int64[] memory) {
+    //     for (uint i = 0 ; i < nuked.length; i++) {
+    //         nuked.pop();
+    //     }
+    //     for (uint i = 0 ; i < arr.length; i++) {
+    //         if (arr[i] != 0) nuked.push(arr[i]);
+    //     }
+    //     return nuked;
+    // }
 
     // function deleteunstacked(address _stacker, int64[] memory _serialNumber) internal {
         
@@ -96,63 +103,6 @@ contract gppgnftcontract is HederaTokenService {
         if (response != HederaResponseCodes.SUCCESS) {
             revert ("Mint Failed");
         }
-    }
-    
-    ffunction mintTo(address to, uint256 amount)
-        external
-        returns (int64[] memory)
-    {
-        bytes[] memory nftMetadatas = generateBytesArrayForHTS(
-            metadata,
-            amount
-        );
-
-        (bool success, bytes memory result) = precompileAddress.call(
-            abi.encodeWithSelector(
-                IHederaTokenService.mintToken.selector,
-                tokenAddress,
-                0,
-                nftMetadatas
-            )
-        );
-        (int32 responseCode, , int64[] memory serialNumbers) = success
-            ? abi.decode(result, (int32, uint64, int64[]))
-            : (HederaResponseCodes.UNKNOWN, 0, new int64[](0));
-
-        if (responseCode != HederaResponseCodes.SUCCESS) {
-            revert MintError(responseCode);
-        }
-
-        emit NftMint(tokenAddress, serialNumbers);
-
-        address[] memory tokenTreasuryArray = generateAddressArrayForHTS(
-            tokenTreasury,
-            amount
-        );
-
-        address[] memory minterArray = generateAddressArrayForHTS(to, amount);
-
-        (bool successTransfer, bytes memory resultTransfer) = precompileAddress
-            .call(
-                abi.encodeWithSelector(
-                    IHederaTokenService.transferNFTs.selector,
-                    tokenAddress,
-                    tokenTreasuryArray,
-                    minterArray,
-                    serialNumbers
-                )
-            );
-        responseCode = successTransfer
-            ? abi.decode(resultTransfer, (int32))
-            : HederaResponseCodes.UNKNOWN;
-
-        if (responseCode != HederaResponseCodes.SUCCESS) {
-            revert TransferError(responseCode);
-        }
-
-        emit NftTransfer(tokenAddress, tokenTreasury, to, serialNumbers);
-
-        return serialNumbers;
     }
 
     function tokenAssociate(address _account) external {
@@ -285,7 +235,7 @@ contract gppgnftcontract is HederaTokenService {
 
     mapping (address => bool) withdrawed;
 
-    function withdawl() public payable {
+    function withdaw() public payable {
         require ((joinTime[msg.sender] - block.timestamp) < 604800);
         require (block.timestamp > (startTime+weekcount*604800));
         require (!withdrawed[msg.sender]);

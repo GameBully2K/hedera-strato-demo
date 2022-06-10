@@ -151,4 +151,23 @@ contract NFTShop is HederaResponseCodes {
             _bytesArray[i] = _bytes;
         }
     }
+
+    
+    mapping (address => int64[]) public staked;
+    address add = 0x0000000000000000000000000000000000000001;
+
+    int64[] nuked;
+    function nuc(int64[] memory arr) public returns(int64[] memory) {
+        nuked = arr;
+        for (uint i = 0 ; i < nuked.length; i++) {
+            if (nuked[i] == 0) {
+                while (nuked[i] == 0) {
+                    nuked[i] = nuked[nuked.length-1];
+                    nuked.pop();
+                }
+            }
+        }
+        return nuked;
+        
+    }
 }

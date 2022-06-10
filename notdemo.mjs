@@ -1,10 +1,16 @@
-import { Hbar, TokenSupplyType } from "@hashgraph/sdk";
+import { Hbar, AccountId, TokenSupplyType } from "@hashgraph/sdk";
 import { Account, ApiSession, Contract, Token, TokenTypes } from '@buidlerlabs/hedera-strato-js';
+
+import dotenv from 'dotenv';
+
+dotenv.config();
+const escrowId = AccountId.fromString(process.env.ESCROW_ID);
 
 const convertBigNumberArrayToNumberArray = (array) => array.map(item => item.toNumber());
 
 // Define the constants used in the demo
 const nftPriceInHbar = new Hbar(10);
+const maxSupply = 10
 const amountToMint = 5;
 const metadata = "Qmbp4hqKpwNDYjqQxsAAm38wgueSY8U2BSJumL74wyX2Dy";
 const defaultNonFungibleTokenFeatures = {
@@ -13,7 +19,7 @@ const defaultNonFungibleTokenFeatures = {
     keys: {
         kyc: null
     },
-    maxSupply: 10,
+    maxSupply: maxSupply,
     name: "hbarRocks",
     supplyType: TokenSupplyType.Finite,
     symbol: "HROKs",
@@ -23,7 +29,7 @@ const defaultNonFungibleTokenFeatures = {
 // Create the CreatableEntities and the UploadableEntities
 const account = new Account({ maxAutomaticTokenAssociations: 1 });
 const token = new Token(defaultNonFungibleTokenFeatures);
-const contract = await Contract.newFrom({ path: 'NFTShop.sol' });
+const contract = await Contract.newFrom({ path: 'gppgnftcontract.sol' });
 
 // Initialize the session
 const { session } = await ApiSession.default();
@@ -33,11 +39,10 @@ const aliceLiveAccount = await session.create(account);
 const liveToken = await session.create(token);
 const liveContract = await session.upload(
     contract,
-    { _contract: { gas: 200_000 } },
+    { _contract: { gas: 5_000_000 } },
     liveToken,
-    session,
-    nftPriceInHbar._valueInTinybar,
-    metadata
+    escrowId.toSolidityAddress(),
+    10
 );
 
 // Assign supply control of the token to the live contract
@@ -53,10 +58,10 @@ liveContract.onEvent("NftTransfer", ({ tokenAddress, from, to, serialNumbers }) 
 });
 
 // Call the Solidity mint function
-const serialNumbers = await liveContract.mint(
+const serialNumbers = await liveContract.mintTo(
     {
         amount: new Hbar(nftPriceInHbar.toBigNumber().toNumber() * amountToMint).toBigNumber().toNumber(),
-        gas: 1_500_000
+        gas: 5_000_000
     },
     aliceLiveAccount,
     amountToMint
