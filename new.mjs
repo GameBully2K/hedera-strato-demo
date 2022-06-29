@@ -1,7 +1,5 @@
 import { Hbar, TokenSupplyType } from "@hashgraph/sdk";
 import { Account, ApiSession, Contract, Token, TokenTypes } from '@buidlerlabs/hedera-strato-js';
-import pkg from '@buidlerlabs/hedera-strato-js';
-const { ContractRegistry } = pkg;
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,15 +10,15 @@ const ContractID = process.env.CONTRACT_ID;
 // console.log(Object.keys(ContractRegistry))
 
 const convertBigNumberArrayToNumberArray = (array) => array.map(item => item.toNumber());
-async function connect() {
-  const { session } = await ApiSession.default({ wallet: { type: "Browser" } });
-  const liveJson = await session.upload(new Json({ theAnswer: 42 }));
+// async function connect() {
+//   const { session } = await ApiSession.default({ wallet: { type: "Browser" } });
+//   const liveJson = await session.upload(new Json({ theAnswer: 42 }));
 
-  console.log(`Wallet account id used: ${session.wallet.account.id}`);
-  console.log(`Json is stored at ${liveJson.id}`);
-  console.log(`The answer is: ${liveJson.theAnswer}`);
-}
-//const { session } = await ApiSession.default();
+//   console.log(`Wallet account id used: ${session.wallet.account.id}`);
+//   console.log(`Json is stored at ${liveJson.id}`);
+//   console.log(`The answer is: ${liveJson.theAnswer}`);
+// }
+const { session } = await ApiSession.default();
 const liveContract = await session.getLiveContract({
   id: ContractID,
   abi: [
